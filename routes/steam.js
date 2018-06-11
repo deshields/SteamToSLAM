@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var request = require('request');
 
 // Steam Web API wrapper: https://github.com/jonbo/node-steam-webapi
 var Steam = require('steam-webapi');
@@ -12,6 +13,7 @@ var userData = {
     ObtainedID: '',
     recentGamesRaw: [],
     recentGames: [],
+    genres:{}
 
 }
 
@@ -26,31 +28,55 @@ router.param('id', function (req, res, next, value){
         
         // Retrieve the steam ID from a steam username/communityID
         steam.resolveVanityURL({vanityurl:value}, function(err, data) {
-            console.log(data);
             userData.ObtainedID = data.steamid
-            console.log(userData.ObtainedID)
             // data -> { steamid: '76561197968620915', success: 1 }
             data.count = 5;
 
             steam.getRecentlyPlayedGames(data, function(err, gamedata){
                 userData.recentGamesRaw = gamedata;
-                console.log(userData)
                 console.log(userData.recentGamesRaw)
                 
-                var loop;
+                var loop, i;
                 for ( loop = 0; loop < userData.recentGamesRaw.games.length; loop++){
-                    console.log('in loop ' + userData.recentGamesRaw.games[loop])
                     userData.recentGames[loop] = userData.recentGamesRaw.games[loop]
-                    console.log(userData.recentGames[loop])
+                    
+                    storeData = request('http://store.steampowered.com/api/appdetails?appids=' + userData.recentGames[loop].appid + '&filters=genres', { json: true }, (err, res, body) => {
+                        if (err) { return console.log(err); }
+                        console.log(Object.keys(body))
+                        var t = Object.keys(body)[0]
+                        var genData = body[t].data.genres
+                        
+                        var gen;
+                        for (gen = 0; gen < genData.length; gen++){
+                            console.log(t + ' gen: ' + genData[gen])
+                            console.log(Object.keys(userData.genres))
+                            console.log(genData[gen].description)
+                            if (userData.genres.hasOwnProperty(genData[gen].description)) { 
+                                console.log(' KEY IN USER ' + userData.genres[genData[gen].description])
+                                userData.genres[genData[gen].description] += 1;
+
+                            } else { userData.genres[genData[gen].description] = 1}
+                        }
+                        console.log(userData)
+
+
+
+                    })
+
                 }
 
-                console.log('out loop ' + userData.recentGames)
+                
+                
+
+
 
                 next();
             
                 
 
             })
+
+            // then get game 
     
         });
 
