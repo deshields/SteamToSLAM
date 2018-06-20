@@ -2,10 +2,12 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+var session = require('express-session')
 var logger = require('morgan');
 
 var index = require('./routes/index');
 var steam = require('./routes/steam');
+var movie = require('./routes/movie');
 
 var app = express();
 
@@ -20,7 +22,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/steamid', steam);
+app.use('/steamid', steam.router);
+app.use('/', movie);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -37,5 +40,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 module.exports = app;
