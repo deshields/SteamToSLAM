@@ -1,14 +1,21 @@
-var express = require('express');
-var session = require('express-session')
-var router = express.Router();
-var request = require('request');
+const express = require('express');
+const session = require('express-session')
+const router = express.Router();
+const request = require('request');
+const KEYS = require('../APIKEY')
+
+const bodyParser = require('body-parser');
+const cors = require('cors');
+router.use(bodyParser.urlencoded({ extended: false }))
+router.use(cors());
+router.use(bodyParser.json());
 
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/steamid');
 mongoose.Promise = global.Promise;
 
-var db = mongoose.connection;
+const db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -29,14 +36,14 @@ const GameSchema = new Schema({
     genres: [String]
 })
 
-var GameDB = mongoose.model('Game', GameSchema);
+ const GameDB = mongoose.model('Game', GameSchema);
 
 
 // Steam Web API wrapper: https://github.com/jonbo/node-steam-webapi
-var Steam = require('steam-webapi');
+const Steam = require('steam-webapi');
 
 // Set global Steam API Key
-Steam.key = "F6100AA042122997FB8739C97D50ED6A";
+Steam.key = KEYS.STEAMKEY;
 
 const userData = {
     id: '',
@@ -49,16 +56,18 @@ const userData = {
 
 const gameNames = []
 
-//router.param('id', function (req, res, next, value){
-router.get('/:id', function(req, res, next) {
-    userData.id = req.params.id
+
+router.post('/', function(req, res, next) {
+    // userData.id = req.params.id
+    userData.id = req.body.username
+    console.log(req.body)
     Steam.ready(function(err) {
         if (err) return console.log(err);
         
         var steam = new Steam();
         
         // Retrieve the steam ID from a steam username/communityID
-        steam.resolveVanityURL({vanityurl:req.params.id}, function(err, data) {
+        steam.resolveVanityURL({vanityurl:userData.id}, function(err, data) {
             userData.ObtainedID = data.steamid
             data.count = 5; // receive a max of 5 recent games
 
@@ -116,7 +125,7 @@ router.get('/:id', function(req, res, next) {
 
                         else{
                             
-                            //console.log("Object found.")
+                            console.log("Object found.")
                             //console.log(results.genres)
                             for(let genre in results.genres){
                                 //console.log("Current: " + results.genres[genre])
@@ -136,7 +145,7 @@ router.get('/:id', function(req, res, next) {
                 setTimeout(function(){
                     console.log("Done waiting.")
                     res.redirect('/recommendations')
-                }, 20000)
+                }, 15000)
                 
             
             })

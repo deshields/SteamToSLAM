@@ -7,7 +7,9 @@ var logger = require('morgan');
 
 var index = require('./routes/index');
 var steam = require('./routes/steam');
-var movie = require('./routes/movie');
+var rec = require('./routes/rec');
+var wait = require('./routes/waiting');
+var auth = require('./routes/auth');
 
 var app = express();
 
@@ -23,7 +25,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/steamid', steam.router);
-app.use('/', movie);
+app.use('/', rec);
+app.use('/', wait);
+app.use('/', auth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

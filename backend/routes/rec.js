@@ -2,8 +2,15 @@ const express = require('express');
 const request = require("request");
 const router = express.Router();
 const result = require('./steam') 
+const KEYS = require('../APIKEY')
 
-var gen1, gen2, key;
+const bodyParser = require('body-parser');
+const cors = require('cors');
+router.use(bodyParser.urlencoded({ extended: false }))
+router.use(cors());
+router.use(bodyParser.json());
+
+let gen1, gen2, key;
 const MovieGenres = { "genres": [ 
       { "id": 28, "name": "Action"},
       { "id": 12, "name": "Adventure"},
@@ -67,71 +74,18 @@ const SteamGenres = { // [[MovieGenre], [TVGenre]]
   "Accounting": [['Crime'], ['Crime', 'Reality', 'Talk']] 
 }
 
-
-
-/* GET home page. */
-
-// see if you can get them to write this to their list AFTER SHOWING THE RECOMMENDATIONS
-router.get('/recommendations/auth', function(req, res, next) {
-
-  console.log('Page reached.')// true
-
-  var token = { method: 'GET',
-      url: 'https://api.themoviedb.org/3/authentication/token/new',
-      qs: { api_key: '4b324664e1d00a5cbbd7795669737e81' },
-      body: '{}' };
-
-    request(token, function (error, response, body) {
-      if (error) throw new Error(error);
-      const chec = JSON.parse(body)
-      key = chec.request_token
-      console.log("Check1: " + body);
-      console.log("Check1.5: " + chec.request_token);
-
-      res.redirect("https://www.themoviedb.org/authenticate/" + chec.request_token + "?redirect_to=http://localhost:3000/recommendations/authenticated")
-
-    });
-});
-
-router.get('/recommendations/authenticated', function(req, res, next){ //?request_token=' + key + '&approved=true'
-  console.log("key: " + key)
-  var sess = { 
-        method: 'GET',
-        url: 'https://api.themoviedb.org/3/authentication/session/new',
-        qs: { request_token: key,
-              api_key: '4b324664e1d00a5cbbd7795669737e81' },
-        body: '{}' };
-  
-  request(sess, function (error, response, body) {
-    if (error) throw new Error(error);
-  
-  });
-  console.log('user authenticated');
-  next()
-
-})
-
-
-// END MOVIE LIST
-
-
-
 router.get('/recommendations/', function(req, res, next){
 
-  var sorted = []
+  let sorted = []
 
-  // Can't read export
-
-  console.log("1: " + Object.keys(result.userData.genres))
   //console.log(result.userData)
-  for (var item in result.userData.genres){
+  for (let item in result.userData.genres){
     sorted.push([item, result.userData.genres[item]])
   }
 
   sorted.sort(function(a, b) { // decreasing order
     return b[1] - a[1];
   })
-  console.log("3: " +sorted)
 
   gen1 = sorted[0][0] // most popular genre of game to user
   gen2 = sorted[1][0] // second-most popular genre of game to user
@@ -150,7 +104,6 @@ router.get('/recommendations/', function(req, res, next){
 
   console.log("MG1: " + MGen1 + " MG2: " + MGen2)
 
-
   let movieIDS = [], TVIDS = [];
 
   for(let movie in MovieGenres['genres']){
@@ -161,6 +114,7 @@ router.get('/recommendations/', function(req, res, next){
     if(TVGenres['genres'][tv]['name'] == TVGen1 || TVGenres['genres'][tv]['name'] == TVGen2){ TVIDS.push(TVGenres['genres'][tv]['id']) }   
   }
   console.log(TVIDS)
+
   //attach items in list into a string like in line 145
 
   let MVRecByID = { method: 'GET',
@@ -171,7 +125,7 @@ router.get('/recommendations/', function(req, res, next){
                 include_adult: 'false',
                 sort_by: 'popularity.desc',
                 language: 'en-US',
-                api_key: '4b324664e1d00a5cbbd7795669737e81' },
+                api_key: KEYS.MOVIEDBKEY },
           body: '{}' };
 
   let TVRecByID = { method: 'GET',
@@ -182,10 +136,10 @@ router.get('/recommendations/', function(req, res, next){
                 include_adult: 'false',
                 sort_by: 'popularity.desc',
                 language: 'en-US',
-                api_key: '4b324664e1d00a5cbbd7795669737e81' },
+                api_key: KEYS.MOVIEDBKEY },
           body: '{}' };
     
-    let movie_names = [], tv_names = [];
+    let movie_names = [], tv_names = [], IDforList = [];
 
     request(MVRecByID, function (error, response, body) {
         if (error) throw new Error(error);
@@ -195,20 +149,22 @@ router.get('/recommendations/', function(req, res, next){
         for(let object in parsed.results){
           
           movie_names.push(parsed.results[object].title)
+          IDforList.push(parsed.results[object].id)
         }
         console.log(movie_names);
     });
 
     request(TVRecByID, function (error, response, body) {
       if (error) throw new Error(error);
-      console.log(body)
+
       
       const parsed2 = JSON.parse(body)
 
-      for(let object2 in parsed2.results){
-        
+      for(let object2 in parsed2.results){  
         tv_names.push(parsed2.results[object2].name)
+        IDforList.push(parsed2.results[object2].id)
       }
+
       console.log(tv_names);
       
 });

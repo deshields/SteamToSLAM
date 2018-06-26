@@ -1,0 +1,14 @@
+<div class="container">
+  <form #f="ngForm" (ngSubmit) = "analyzeUser(f.value); f.reset()" action="http://localhost:3000/wait" method="get">
+    <div class="form-group">
+      <label for="username">Steam Username: </label>
+      <input type="text" class="form-control" id="username"  name="username" required ngModel>
+    </div>
+
+    <button type="submit" class="btn" onclick="window.location='http://localhost:3000/wait';">Go!</button>
+
+    {{message}}
+
+  </form>
+
+  </div>

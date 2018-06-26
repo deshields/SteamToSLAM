@@ -10,3 +10,10 @@ block content
 
   h2 TV Shows
   p #{tv}
+
+  h3 Would you like to save this as a list?
+  button(onclick="move()") Yes, please!
+script.
+  function move() {
+    window.location.href = '/recommendations/auth'
+  }
