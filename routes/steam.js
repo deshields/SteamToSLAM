@@ -24,7 +24,7 @@ const Schema = mongoose.Schema;
 //      genres
 
 const GameSchema = new Schema({
-    app_id: Number,
+    appid: Number,
     name: String,
     genres: [String]
 })
@@ -49,7 +49,8 @@ const userData = {
 
 const gameNames = []
 
-router.param('id', function (req, res, next, value){
+//router.param('id', function (req, res, next, value){
+router.get('/:id', function(req, res, next) {
     userData.id = req.params.id
     Steam.ready(function(err) {
         if (err) return console.log(err);
@@ -57,7 +58,7 @@ router.param('id', function (req, res, next, value){
         var steam = new Steam();
         
         // Retrieve the steam ID from a steam username/communityID
-        steam.resolveVanityURL({vanityurl:value}, function(err, data) {
+        steam.resolveVanityURL({vanityurl:req.params.id}, function(err, data) {
             userData.ObtainedID = data.steamid
             data.count = 5; // receive a max of 5 recent games
 
@@ -72,7 +73,7 @@ router.param('id', function (req, res, next, value){
                     const cur_id = userData.recentGames[loop].appid
                     const cur_name = userData.recentGames[loop].name
 
-                    GameDB.findOne({app_id: cur_id}, { _id: 0, app_id: 1, name:1, genres:1}, function(err, results){
+                    GameDB.findOne({appid: cur_id}, { _id: 0, appid: 1, name:1, genres:1}, function(err, results){
                         if(err){
                             console.error("Nope.")
                         }
@@ -99,8 +100,14 @@ router.param('id', function (req, res, next, value){
 
                                     } else { userData.genres[genData[gen].description] = 1}
                                 }
+                                console.log("User genres: " + Object.keys(userData.genres) + " " + Object.values(userData.genres))
 
                                 newGame = new GameDB({appid: cur_id, name: cur_name, genres: forInit})
+                                
+                                newGame.save(function(err, newGame){
+                                    if(err) return console.error("Error when saving")
+                                    console.log("Saved")
+                                })
                             })
 
 
@@ -108,14 +115,27 @@ router.param('id', function (req, res, next, value){
 
                         else{
                             console.log("Object found.")
-                            console.log(results)
+                            console.log(results.genres)
+                            for(let genre in results.genres){
+                                console.log("Current: " + results.genres[genre])
+                                if (userData.genres.hasOwnProperty(results.genres[genre])) { 
+                                    userData.genres[results.genres[genre]] += 1;
+
+                                } else { userData.genres[results.genres[genre]] = 1}
+                            }
+
                         }
 
-                    })
+                    }).lean()
 
                 } // out of the for loop so we don't get the HTTP HEADERS ALREADY SENT error
 
-                next();
+                console.log("Waiting for calculatons...")
+                setTimeout(function(){
+                    console.log("Done waiting.")
+                    res.redirect('/recommendations/movie')
+                }, 20000)
+                
             
             })
     
@@ -126,10 +146,28 @@ router.param('id', function (req, res, next, value){
     
 })
 
-router.get('/:id', function(req, res, next) {
-    console.log("Final check: " + userData) 
-    res.redirect('/recommendations')
-  });
+router.get('/', function(req, res, next) {
+    //res.render('index', {title: "Homework 2", yum: "This is the directory for homework 2. Please type a string into the URI."})
+    GameDB.find({}, '-_id -__v', function(err, results) {
+        if (err) return console.error("Nuh-uh");
+        console.log(results)
+        res.json(results)
+    })
+})  
+
+//for cleaning purposes
+
+router.delete('/', function (req, res, next) {
+    GameDB.deleteMany({}, function (err, result) {
+        if(!result) {res.json({message: 'String not found!'})}
+
+        if(err) {res.json({message: 'Something went wrong while deleting'});}
+        
+        else {res.json({message: 'Successfully deleted.'});}
+      })
+})
+
+
   
   
   module.exports = {router, userData};
