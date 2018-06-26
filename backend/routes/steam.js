@@ -65,7 +65,7 @@ router.get('/:id', function(req, res, next) {
             steam.getRecentlyPlayedGames(data, function(err, gamedata){
                 userData.recentGamesRaw = gamedata;
 
-                var loop, i;
+                let loop, i;
                 for ( loop = 0; loop < userData.recentGamesRaw.total_count; loop++){
                     userData.recentGames[loop] = userData.recentGamesRaw.games[loop]
                     gameNames[loop] = userData.recentGamesRaw.games[loop].name
@@ -84,10 +84,10 @@ router.get('/:id', function(req, res, next) {
                             storeData = request('http://store.steampowered.com/api/appdetails?appids=' + cur_id + '&filters=genres', { json: true }, (err, res, body) => {
                                 if (err) { return console.log(err); }
 
-                                var t = Object.keys(body)[0]
-                                var genData = body[t].data.genres
-                                var forInit = []
-                                var gen;
+                                let t = Object.keys(body)[0]
+                                let genData = body[t].data.genres
+                                let forInit = []
+                                let gen;
                                 
                                 for (gen = 0; gen < genData.length; gen++){
                                     
@@ -100,7 +100,8 @@ router.get('/:id', function(req, res, next) {
 
                                     } else { userData.genres[genData[gen].description] = 1}
                                 }
-                                console.log("User genres: " + Object.keys(userData.genres) + " " + Object.values(userData.genres))
+                                
+                                //console.log("User genres: " + Object.keys(userData.genres) + " " + Object.values(userData.genres))
 
                                 newGame = new GameDB({appid: cur_id, name: cur_name, genres: forInit})
                                 
@@ -114,10 +115,11 @@ router.get('/:id', function(req, res, next) {
                         }
 
                         else{
-                            console.log("Object found.")
-                            console.log(results.genres)
+                            
+                            //console.log("Object found.")
+                            //console.log(results.genres)
                             for(let genre in results.genres){
-                                console.log("Current: " + results.genres[genre])
+                                //console.log("Current: " + results.genres[genre])
                                 if (userData.genres.hasOwnProperty(results.genres[genre])) { 
                                     userData.genres[results.genres[genre]] += 1;
 
@@ -133,7 +135,7 @@ router.get('/:id', function(req, res, next) {
                 console.log("Waiting for calculatons...")
                 setTimeout(function(){
                     console.log("Done waiting.")
-                    res.redirect('/recommendations/movie')
+                    res.redirect('/recommendations')
                 }, 20000)
                 
             

@@ -72,7 +72,7 @@ const SteamGenres = { // [[MovieGenre], [TVGenre]]
 /* GET home page. */
 
 // see if you can get them to write this to their list AFTER SHOWING THE RECOMMENDATIONS
-router.get('/recommendations', function(req, res, next) {
+router.get('/recommendations/auth', function(req, res, next) {
 
   console.log('Page reached.')// true
 
@@ -105,7 +105,6 @@ router.get('/recommendations/authenticated', function(req, res, next){ //?reques
   request(sess, function (error, response, body) {
     if (error) throw new Error(error);
   
-    console.log("Check2:" + body);
   });
   console.log('user authenticated');
   next()
@@ -117,7 +116,7 @@ router.get('/recommendations/authenticated', function(req, res, next){ //?reques
 
 
 
-router.get('/recommendations/movie', function(req, res, next){
+router.get('/recommendations/', function(req, res, next){
 
   var sorted = []
 
@@ -141,9 +140,14 @@ router.get('/recommendations/movie', function(req, res, next){
 
   MovieRec1 = SteamGenres[gen1][0]
   MovieRec2 = SteamGenres[gen2][0]
+  TVRec1 = SteamGenres[gen1][1]
+  TVRec2 = SteamGenres[gen2][1]
 
   MGen1 = MovieRec1[Math.floor(Math.random() * MovieRec1.length)]
   MGen2 = MovieRec2[Math.floor(Math.random() * MovieRec2.length)]
+  TVGen1 = TVRec1[Math.floor(Math.random() * TVRec1.length)]
+  TVGen2 = TVRec2[Math.floor(Math.random() * TVRec2.length)]
+
   console.log("MG1: " + MGen1 + " MG2: " + MGen2)
 
 
@@ -154,11 +158,9 @@ router.get('/recommendations/movie', function(req, res, next){
   }
   
   for(let tv in TVGenres['genres']){
-    if(TVGenres['genres'][tv]['name'] == MGen1 || TVGenres['genres'][tv]['name'] == MGen2){ TVIDS.push(TVGenres['genres'][tv]['id']) }   
+    if(TVGenres['genres'][tv]['name'] == TVGen1 || TVGenres['genres'][tv]['name'] == TVGen2){ TVIDS.push(TVGenres['genres'][tv]['id']) }   
   }
-
-  
-
+  console.log(TVIDS)
   //attach items in list into a string like in line 145
 
   let MVRecByID = { method: 'GET',
@@ -199,19 +201,20 @@ router.get('/recommendations/movie', function(req, res, next){
 
     request(TVRecByID, function (error, response, body) {
       if (error) throw new Error(error);
+      console.log(body)
       
-      const parsed = JSON.parse(body)
+      const parsed2 = JSON.parse(body)
 
-      for(let object in parsed.results){
+      for(let object2 in parsed2.results){
         
-        tv_names.push(parsed.results[object].title)
+        tv_names.push(parsed2.results[object2].name)
       }
       console.log(tv_names);
       
 });
-
-    res.render('game', {title: result.userData.id, movies: movie_names, tv: tv_names});
-
+setTimeout(function(){
+    res.render('game', {title: result.userData.id, movies: movie_names, tv: tv_names})},
+    15000)
 })
 
 
