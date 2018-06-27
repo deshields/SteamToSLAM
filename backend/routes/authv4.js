@@ -106,15 +106,15 @@ router.get('/auth', function(req, res, next) {
       if (error) throw new Error(error);
        console.log("access: " + body.access_token)
         accessTok = body.access_token
-
-
+        let mili = Date.now()
+        let toDate = Date(mili).toString()
         let listid = 0;
         let NewList = { method: 'POST',
                         url: 'https://api.themoviedb.org/4/list',
                         headers: { 'content-type': 'application/json;charset=utf-8',
                                     authorization: 'Bearer ' + accessTok },
                         body: 
-                        { name: 'Movie: ' + rec.genresOUT[0] + '/' +rec.genresOUT[1] + ' TV: ' + rec.genresOUT[2] + '/' + rec.genresOUT[3] + " --MADE " + Date.now(),
+                        { name: 'Movie: ' + rec.genresOUT[0] + '/' +rec.genresOUT[1] + ' TV: ' + rec.genresOUT[2] + '/' + rec.genresOUT[3] + " --MADE " + toDate,
                             "iso_639_1": "en"},
                         json: true };
     
