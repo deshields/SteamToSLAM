@@ -59,22 +59,11 @@ let MVDBuser = "", sessid = "";
         request(MVDBAccount, function (error, response, body) {
             if (error) throw new Error(error);
             console.log("username: " + body)
-            MVDBuser = body.username 
+            let p_body = JSON.parse(body)
+            MVDBuser = p_body.username 
             res.redirect('http://localhost:3000/auth');
         })
     });
-
-    // const MVDBAccount = request("https://api.themoviedb.org/3/account?api_key=" + KEYS.MOVIEDBKEY +"&session_id=" + sessid, { json: true }, (err, res, body) => {
-    //     if (err) { return console.log(err); }
-    //     console.log(body.url);
-    //     console.log(body);
-    //     console.log("username: " + body)
-    //     MVDBuser = body.username 
-    // })
-
-    
-        
-
         
     
     })
@@ -83,21 +72,22 @@ let MVDBuser = "", sessid = "";
 
 router.get('/auth', function(req, res, next) { 
 
-    console.log('Page reached.')// true
+    console.log('Page reached.')
     
-    let token = { method: 'POST',
+    var options = { method: 'POST',
         url: 'https://api.themoviedb.org/4/auth/request_token',
         headers: 
         { 'content-type': 'application/json;charset=utf-8',
-        authorization: 'Bearer ' + KEYS.READV4KEY},
-        body: { redirect_to:'https://google.com'}, //this is a pain in the butt and takes forever to approve and redirect and it sucks
+            authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YjMyNDY2NGUxZDAwYTVjYmJkNzc5NTY2OTczN2U4MSIsInN1YiI6IjViMTE2NDVjOTI1MTQxNWVhMDAxMmNkMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A4VSomGB25dt1rkn0SrfSpyzCk3aE-TKQq2Kh4DqsVY' },
+        body: { redirect_to: 'http://localhost:3000/authenticated' },
         json: true };
-    
-        request(token, function (error, response, body) {
+
+        request(options, function (error, response, body) {
         if (error) throw new Error(error);
-        
+
+        console.log(body);
         requestTok = body.request_token
-        //res.redirect("http://localhost:3000/authenticated")
+        res.redirect("https://www.themoviedb.org/auth/access?request_token=" + requestTok)
         
         });
     });   
@@ -114,16 +104,17 @@ router.get('/auth', function(req, res, next) {
 
     request(reque, function (error, response, body) {
       if (error) throw new Error(error);
-    //   console.log(body)
-      accessTok = body.access_token
+       console.log("access: " + body.access_token)
+        accessTok = body.access_token
+
 
         let listid = 0;
         let NewList = { method: 'POST',
                         url: 'https://api.themoviedb.org/4/list',
                         headers: { 'content-type': 'application/json;charset=utf-8',
-                                    authorization: 'Bearer ' + KEYS.READV4KEY },
+                                    authorization: 'Bearer ' + accessTok },
                         body: 
-                        { name: 'Movie: ' + rec.genresOUT[0] + '/' +rec.genresOUT[1] + ' TV: ' + rec.genresOUT[2] + '/' + rec.genresOUT[3] + " --MADE " + Date.now,
+                        { name: 'Movie: ' + rec.genresOUT[0] + '/' +rec.genresOUT[1] + ' TV: ' + rec.genresOUT[2] + '/' + rec.genresOUT[3] + " --MADE " + Date.now(),
                             "iso_639_1": "en"},
                         json: true };
     
@@ -131,10 +122,12 @@ router.get('/auth', function(req, res, next) {
         if (error) throw new Error(error);
         
         listid = body.id
+        console.log("list: " + listid)
         console.log(body);
 
         let newMedia = [];
         for(let mid in rec.IDforMList){
+            console.log(rec.IDforMList[mid])
             newMedia.push({media_type: 'movie', media_id: rec.IDforMList[mid]})
         }
         for(let tid in rec.IDforTList){
@@ -143,15 +136,16 @@ router.get('/auth', function(req, res, next) {
         
     
         let addRecom = { method: 'POST',
-                        url: 'https://api.themoviedb.org/4/list',
+                        url: 'https://api.themoviedb.org/4/list/' + listid +"/items",
                         headers: { 'content-type': 'application/json;charset=utf-8',
-                                    authorization: 'Bearer ' + KEYS.READV4KEY },
+                                    authorization: 'Bearer ' + accessTok },
                         body: { items: newMedia },
                         json: true }
     
     
             request(addRecom, function (error, response, body) {
                 if (error) throw new Error(error);
+                console.log(body)
                 
                 res.redirect("https://www.themoviedb.org/u/" + MVDBuser + "/lists")
             })
