@@ -1,2 +1,2 @@
-# SteamToSLAM
-Project for CS591
+# Welcome to the Backend
+Make sure to run "npm start" !
