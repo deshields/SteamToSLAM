@@ -3,7 +3,7 @@ extends layout
 block content
   h1= title
   p Welcome #{title}!
-  p Based on your recent games, why not try watching these?
+  p Based on your recent games, you seem to like #{genre_1} and #{genre_2} games, so why not try watching these?
 
   h2 Movies
   p #{movies}
@@ -12,8 +12,4 @@ block content
   p #{tv}
 
   h3 Would you like to save this as a list?
-  button(onclick="move()") Yes, please!
-script.
-  function move() {
-    window.location.href = '/recommendations/auth'
-  }
+  a(href="http://localhost:3000/authV3") Yes, please!

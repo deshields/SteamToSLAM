@@ -9,7 +9,7 @@ var index = require('./routes/index');
 var steam = require('./routes/steam');
 var rec = require('./routes/rec');
 var wait = require('./routes/waiting');
-var auth = require('./routes/auth');
+var auth = require('./routes/authv4');
 
 var app = express();
 
@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/steamid', steam.router);
-app.use('/', rec);
+app.use('/', rec.router);
 app.use('/', wait);
 app.use('/', auth);
 

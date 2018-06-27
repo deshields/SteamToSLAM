@@ -10,6 +10,7 @@ router.use(bodyParser.urlencoded({ extended: false }))
 router.use(cors());
 router.use(bodyParser.json());
 
+let genresOUT= [],IDforMList = [], IDforTList = [];
 let gen1, gen2, key;
 const MovieGenres = { "genres": [ 
       { "id": 28, "name": "Action"},
@@ -101,6 +102,12 @@ router.get('/recommendations/', function(req, res, next){
   MGen2 = MovieRec2[Math.floor(Math.random() * MovieRec2.length)]
   TVGen1 = TVRec1[Math.floor(Math.random() * TVRec1.length)]
   TVGen2 = TVRec2[Math.floor(Math.random() * TVRec2.length)]
+  
+  //For our exports
+  genresOUT.push(MGen1)
+  genresOUT.push(MGen2)
+  genresOUT.push(TVGen1)
+  genresOUT.push(TVGen2)
 
   console.log("MG1: " + MGen1 + " MG2: " + MGen2)
 
@@ -139,7 +146,8 @@ router.get('/recommendations/', function(req, res, next){
                 api_key: KEYS.MOVIEDBKEY },
           body: '{}' };
     
-    let movie_names = [], tv_names = [], IDforList = [];
+    let movie_names = [], tv_names = [] 
+
 
     request(MVRecByID, function (error, response, body) {
         if (error) throw new Error(error);
@@ -149,7 +157,7 @@ router.get('/recommendations/', function(req, res, next){
         for(let object in parsed.results){
           
           movie_names.push(parsed.results[object].title)
-          IDforList.push(parsed.results[object].id)
+          IDforMList.push(parsed.results[object].id)
         }
         console.log(movie_names);
     });
@@ -162,18 +170,18 @@ router.get('/recommendations/', function(req, res, next){
 
       for(let object2 in parsed2.results){  
         tv_names.push(parsed2.results[object2].name)
-        IDforList.push(parsed2.results[object2].id)
+        IDforTList.push(parsed2.results[object2].id)
       }
 
       console.log(tv_names);
       
 });
 setTimeout(function(){
-    res.render('game', {title: result.userData.id, movies: movie_names, tv: tv_names})},
-    15000)
+    res.render('game', {title: result.userData.id, genre_1: gen1, genre_2: gen2, movies: movie_names, tv: tv_names})},
+    10000)
 })
 
 
 
 
-module.exports = router;
+module.exports = {router, genresOUT, IDforMList, IDforTList};

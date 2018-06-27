@@ -46,6 +46,8 @@ router.get('/recommendations/auth', function(req, res, next) {
       let p_body = JSON.parse(body)
       sessid = p_body.session_id
     });
+
+    
   
     let listid = 0;
     let NewList = { method: 'POST',
@@ -67,6 +69,7 @@ router.get('/recommendations/auth', function(req, res, next) {
     });
   
     let newMedia;
+    
     
     console.log('user authenticated');
   
